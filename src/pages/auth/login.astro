@@ -1,0 +1,100 @@
+---
+
+import Main from "@layouts/main.astro"
+import { Input } from "@components/inputs"
+import Button from "@components/buttons/index.astro"
+---
+
+<Main title="Login">
+    <div class="container flex flex-col justify-center flex-grow h-screen gap-8">
+
+        <div class="flex flex-col justify-center items-center gap-4">
+            <h1 class="text-3xl font-semibold"> Login </h1>
+        </div>
+
+        <login-form class="flex flex-col justify-center items-center gap-4">
+            <form id="login-form" class="grid gap-4 w-full">
+                <Input 
+                    type="email" 
+                    placeholder="someone@example.co.uk" 
+                    name="email" 
+                    label="Email"
+                    autocomplete="email"
+                />  
+                <Input 
+                    type="password" 
+                    placeholder="-----" 
+                    name="current-password" 
+                    label="Password"
+                    autocomplete="current-password"
+                />                 
+                <Button class="bg-primary text-primary-content" type="submit"> Login </Button>
+
+                <Button class="border-transparent text-sm"> Forgot password </Button>
+            </form>
+
+            <span class="text-sm"> Don't have an account? Sign up here </span>
+
+        </login-form>
+    </div>   
+
+
+    <script> 
+        import { useFetch } from '@utils'
+
+        interface sessionResponse {
+            data: {
+                login: {
+                    sessionId: string
+                }
+            }
+        }
+
+        class LoginForm extends HTMLElement {
+
+            constructor(){
+                super()
+
+                const form = this.querySelector(`form`)
+                form?.addEventListener('submit', this.handleFormSubmit)
+
+                console.log(form)
+            }
+
+            handleFormSubmit = async (e: SubmitEvent) => {
+                e.preventDefault()  //Prevent form submit
+
+                const data = new FormData(e.target as HTMLFormElement)
+                const values = Object.fromEntries(data)
+                
+                const response:Promise<sessionResponse> = await useFetch({
+                    query: `
+                        query Login($email: String!, $password: String!) {
+                            login(email: $email, password: $password) {
+                                sessionId
+                            }
+                        }
+                    `,
+                    variables: {
+                        "email": values.email,
+                        "password": values['current-password']
+                    }
+                })
+
+                const sessionId = await response
+
+                if(sessionId)
+                    this.saveNewSession(sessionId.data.login.sessionId)
+            }
+
+            saveNewSession = async (sessionId: any) => {
+                const cookieMaxDays: number = 14
+                const maxAge: number = 86400 * cookieMaxDays
+
+                document.cookie = `_sessionId=${sessionId}; max-age=${maxAge}; path=/;`
+            }
+        }
+
+        customElements.define("login-form", LoginForm)
+    </script> 
+</Main>

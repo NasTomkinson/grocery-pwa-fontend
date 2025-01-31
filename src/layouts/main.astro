@@ -1,0 +1,17 @@
+---
+import "../main.css"
+
+const { title, description } = Astro.props
+
+---
+
+<html>
+    <head>
+        <title> { title || "Site" } </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+    </head>
+
+    <body>
+        <slot />
+    </body>
+</html>

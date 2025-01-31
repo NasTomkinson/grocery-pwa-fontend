@@ -1,0 +1,9 @@
+---
+
+const { class: classes, ...rest} = Astro.props
+
+---
+
+<button class:list={[`rounded border font-semibold py-2 px-4`, classes]} {...rest}> 
+    <slot />
+</button>
